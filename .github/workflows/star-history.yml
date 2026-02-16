@@ -12,21 +12,19 @@ jobs:
   update-star-history:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      
-      - name: Fetch Star History Chart
-        run: |
-          set -euo pipefail
-          mkdir -p star-history
-          curl -fsSL \
-            "https://api.star-history.com/svg?repos=bittner/pyclean,painless-software/python-cli-test-helpers,painless-software/django-probes,behave/behave-django,jazzband/django-analytical,behave/behave&type=Date" \
-            -o star-history/star-history.svg
-          
-      - name: Commit & Push
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add star-history/
-          if git commit -m "Update star history chart"; then
-            git push
-          fi
+    - uses: actions/checkout@v6
+    - name: Fetch Star History Chart
+      run: |
+        set -euo pipefail
+        mkdir -p star-history
+        curl -fsSL \
+          "https://api.star-history.com/svg?repos=bittner/pyclean,painless-software/python-cli-test-helpers,painless-software/django-probes,behave/behave-django,jazzband/django-analytical,behave/behave&type=date&logscale&legend=top-left" \
+          -o star-history/star-history.svg
+    - name: Commit & Push
+      run: |
+        git config user.name github-actions
+        git config user.email github-actions@github.com
+        git add star-history/
+        if git commit -m "Update star history chart"; then
+          git push
+        fi
