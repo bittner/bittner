@@ -31,6 +31,13 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 OUTPUT_DIR = Path("star-history")
 OUTPUT_FILE = OUTPUT_DIR / "star-history.svg"
 
+# API pagination settings
+MAX_PAGES = 100  # Maximum number of pages to fetch (limits to 10,000 stars)
+PER_PAGE = 100  # Number of stargazers per page
+
+# Chart settings
+CHART_DPI = 100  # Resolution for the output SVG
+
 # Color palette for different repositories
 COLORS = [
     "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b",
@@ -54,12 +61,11 @@ def get_star_history(repo):
     
     stars = []
     page = 1
-    per_page = 100
     
     print(f"Fetching star data for {repo}...")
     
     while True:
-        params = {"page": page, "per_page": per_page}
+        params = {"page": page, "per_page": PER_PAGE}
         response = requests.get(url, headers=headers, params=params)
         
         if response.status_code != 200:
@@ -78,13 +84,13 @@ def get_star_history(repo):
         print(f"  Fetched page {page} ({len(data)} stars)")
         
         # Check if there are more pages
-        if len(data) < per_page:
+        if len(data) < PER_PAGE:
             break
         
         page += 1
         
         # Rate limiting protection - GitHub API has limits
-        if page > 100:  # Max 10,000 stars (100 pages * 100 per page)
+        if page > MAX_PAGES:
             print(f"  Reached maximum page limit for {repo}")
             break
     
@@ -142,7 +148,7 @@ def generate_chart(repo_data):
     
     # Save as SVG
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    plt.savefig(OUTPUT_FILE, format='svg', bbox_inches='tight', dpi=100)
+    plt.savefig(OUTPUT_FILE, format='svg', bbox_inches='tight', dpi=CHART_DPI)
     print(f"\nChart saved to {OUTPUT_FILE}")
 
 
