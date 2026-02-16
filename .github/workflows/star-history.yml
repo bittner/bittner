@@ -11,18 +11,18 @@ permissions:
 jobs:
   update-star-history:
     runs-on: ubuntu-latest
+    env:
+      BASE_URL: https://api.star-history.com/svg
+      BASE_OPTIONS: type=date&logscale&legend=top-left
+      REPO_LIST: bittner/pyclean,painless-software/python-cli-test-helpers,painless-software/django-probes,behave/behave-django,jazzband/django-analytical,behave/behave
     steps:
     - uses: actions/checkout@v6
     - name: Fetch Star History Chart
       run: |
         set -euo pipefail
         mkdir -p star-history
-        curl -fsSL \
-          "https://api.star-history.com/svg?repos=bittner/pyclean,painless-software/python-cli-test-helpers,painless-software/django-probes,behave/behave-django,jazzband/django-analytical,behave/behave&type=date&logscale&legend=top-left" \
-          -o star-history/star-history.svg
-        curl -fsSL \
-          "https://api.star-history.com/svg?repos=bittner/pyclean,painless-software/python-cli-test-helpers,painless-software/django-probes,behave/behave-django,jazzband/django-analytical,behave/behave&type=date&theme=dark&logscale&legend=top-left" \
-          -o star-history/star-history-dark.svg
+        curl -fsSL "${BASE_URL}?repos=${REPO_LIST}&${BASE_OPTIONS}" -o star-history/star-history.svg
+        curl -fsSL "${BASE_URL}?repos=${REPO_LIST}&${BASE_OPTIONS}&theme=dark" -o star-history/star-history-dark.svg
     - name: Commit & Push
       run: |
         git config user.name github-actions
