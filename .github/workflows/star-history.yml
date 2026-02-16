@@ -20,6 +20,9 @@ jobs:
         curl -fsSL \
           "https://api.star-history.com/svg?repos=bittner/pyclean,painless-software/python-cli-test-helpers,painless-software/django-probes,behave/behave-django,jazzband/django-analytical,behave/behave&type=date&logscale&legend=top-left" \
           -o star-history/star-history.svg
+        curl -fsSL \
+          "https://api.star-history.com/svg?repos=bittner/pyclean,painless-software/python-cli-test-helpers,painless-software/django-probes,behave/behave-django,jazzband/django-analytical,behave/behave&type=date&theme=dark&logscale&legend=top-left" \
+          -o star-history/star-history-dark.svg
     - name: Commit & Push
       run: |
         git config user.name github-actions
