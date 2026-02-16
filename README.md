@@ -14,5 +14,3 @@ Some substantial parts of the work I do is [on GitLab](https://gitlab.com/painle
 Here are some of the more popular projects that I work on as a maintainer or co-maintainer. 🚀  
 
 [![Star History Chart](./star-history/star-history.svg)](https://www.star-history.com/#bittner/pyclean&painless-software/python-cli-test-helpers&painless-software/django-probes&behave/behave-django&jazzband/django-analytical&behave/behave&type=date&logscale&legend=top-left)
-
-_Chart automatically updates weekly via [GitHub Actions workflow](.github/workflows/star-history.yml)._

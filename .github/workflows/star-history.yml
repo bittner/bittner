@@ -9,26 +9,18 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  update-star-history:
     runs-on: ubuntu-latest
-    name: generate-star-history-chart
     steps:
       - uses: actions/checkout@v6
       
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      
-      - name: Install dependencies
+      - name: Fetch Star History Chart
         run: |
-          pip install requests matplotlib numpy
-          
-      - name: Generate Star History Chart
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          python .github/scripts/generate-star-history.py
+          set -euo pipefail
+          mkdir -p star-history
+          curl -fsSL \
+            "https://api.star-history.com/svg?repos=bittner/pyclean,painless-software/python-cli-test-helpers,painless-software/django-probes,behave/behave-django,jazzband/django-analytical,behave/behave&type=Date" \
+            -o star-history/star-history.svg
           
       - name: Commit & Push
         run: |
