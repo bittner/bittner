@@ -1,0 +1,40 @@
+name: Star History Chart
+
+on:
+  schedule:
+    - cron: "0 0 * * 0"  # Weekly on Sunday at midnight UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: generate-star-history-chart
+    steps:
+      - uses: actions/checkout@v6
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install dependencies
+        run: |
+          pip install requests matplotlib numpy
+          
+      - name: Generate Star History Chart
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python .github/scripts/generate-star-history.py
+          
+      - name: Commit & Push
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add star-history/
+          if git commit -m "Update star history chart"; then
+            git push
+          fi
