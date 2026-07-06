@@ -10,8 +10,9 @@ mirror:
   before_script:
   - git clone --mirror https://${SOURCE} clone
   - cd clone
+  - git remote rename origin github
   - git remote add gitlab https://oauth2:${GITLAB_TOKEN}@${TARGET}
   script:
-  - git lfs fetch origin --all
+  - git lfs fetch github --all
   - git lfs push gitlab --all
   - git push gitlab --force --prune 'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'
