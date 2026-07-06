@@ -12,7 +12,14 @@ jobs:
   update-star-history:
     runs-on: ubuntu-latest
     env:
-      REPO_LIST: bittner/pyclean,painless-software/python-cli-test-helpers,painless-software/django-probes,behave/behave-django,jazzband/django-analytical,behave/behave,ctsdownloads/easyspeak
+      REPO_LIST: >-
+        bittner/pyclean,
+        painless-software/python-cli-test-helpers,
+        painless-software/django-probes,
+        behave/behave-django,
+        jazzband/django-analytical,
+        behave/behave,
+        ctsdownloads/easyspeak
     steps:
     - uses: actions/checkout@v6
       with:
