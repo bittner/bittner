@@ -18,7 +18,7 @@ jobs:
     - uses: astral-sh/setup-uv@v6
     - name: Generate Star History Chart
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.STAR_HISTORY_TOKEN }}
       run: uv run star-history/generate_chart.py
     - name: Commit & Push
       run: |

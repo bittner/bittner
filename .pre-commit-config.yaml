@@ -1,0 +1,21 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uvx ruff check --fix
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+      - id: ruff-format
+        name: ruff format
+        entry: uvx ruff format
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
+      - id: pytest-doctests
+        name: pytest (doctests)
+        entry: uvx --with matplotlib pytest --doctest-modules star-history/generate_chart.py
+        language: system
+        pass_filenames: false
+        always_run: true
