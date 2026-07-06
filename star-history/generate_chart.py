@@ -19,10 +19,10 @@ if ``REPO_LIST`` grows beyond its length.
 Usage:
     REPO_LIST="owner/repo,owner/repo,..." GITHUB_TOKEN=... uv run generate_chart.py
 
-Outputs two transparent hand-drawn (xkcd) SVGs next to this script, a light and
-a dark variant, so the README can serve the right one per theme via
-``<picture>``. The xkcd look renders authentically because the ``xkcd Script``
-font is vendored under ``fonts/``.
+Outputs two hand-drawn (xkcd) SVGs next to this script, a light and a dark
+variant on solid backgrounds, so the README can serve the right one per theme
+via ``<picture>`` while each stays readable on its own. The xkcd look renders
+authentically because the ``xkcd Script`` font is vendored under ``fonts/``.
 """
 
 from __future__ import annotations
@@ -251,13 +251,18 @@ def _legend(ax, series: Series, *, fg: str, grid: str, legend_bg: str) -> None:
     ax.add_artist(anchored)
 
 
-def _draw(series: Series, out: Path, *, fg: str, grid: str, legend_bg: str) -> None:
-    """Draw and save one transparent chart inked in ``fg``.
+def _draw(
+    series: Series, out: Path, *, bg: str, fg: str, grid: str, legend_bg: str
+) -> None:
+    """Draw and save one chart on a solid ``bg`` background inked in ``fg``.
 
-    The background is transparent so the README's ``<picture>`` element can
-    serve the light or dark variant to match the viewer's theme.
+    A solid background keeps each variant readable on its own, so the light or
+    dark SVG stays legible even when a viewer ignores the README's ``<picture>``
+    theme hint and shows the other one.
     """
     fig, ax = plt.subplots(figsize=(8, 5.5))
+    fig.patch.set_facecolor(bg)
+    ax.set_facecolor(bg)
 
     for (_repo, records, _avatar), colour in zip(series, PALETTE, strict=False):
         if not records:
@@ -267,10 +272,12 @@ def _draw(series: Series, out: Path, *, fg: str, grid: str, legend_bg: str) -> N
         ax.plot(xs, ys, color=colour, linewidth=2.4, solid_capstyle="round")
 
     ax.set_yscale("log")
+    ax.set_xlabel("Date", color=fg)
     ax.set_ylabel("GitHub Stars", color=fg)
     title = ax.set_title("Star History", color=fg, fontsize=18, loc="center", pad=14)
-    title.set_path_effects([pe.withStroke(linewidth=1.2, foreground=fg)])
-    ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
+    title.set_path_effects([pe.withStroke(linewidth=1.0, foreground=fg)])
+    ax.xaxis.set_major_locator(mdates.YearLocator(2))
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
     fig.autofmt_xdate()
     ax.grid(True, which="major", color=grid, linewidth=0.6, alpha=0.7)
     ax.tick_params(colors=fg)
@@ -280,17 +287,18 @@ def _draw(series: Series, out: Path, *, fg: str, grid: str, legend_bg: str) -> N
     _legend(ax, series, fg=fg, grid=grid, legend_bg=legend_bg)
 
     fig.tight_layout()
-    fig.savefig(out, format="svg", transparent=True, bbox_inches="tight")
+    fig.savefig(out, format="svg", facecolor=bg, bbox_inches="tight")
     plt.close(fig)
 
 
 def render(series: Series, out: Path, *, dark: bool) -> None:
     """Render the hand-drawn (xkcd) chart, inked for a dark or light theme."""
+    bg = "#0d1117" if dark else "#ffffff"
     fg = "#c9d1d9" if dark else "#24292f"
     grid = "#30363d" if dark else "#d0d7de"
-    legend_bg = "#0d1117" if dark else "#ffffff"
+    legend_bg = "#161b22" if dark else "#ffffff"
     with plt.xkcd():
-        _draw(series, out, fg=fg, grid=grid, legend_bg=legend_bg)
+        _draw(series, out, bg=bg, fg=fg, grid=grid, legend_bg=legend_bg)
 
 
 def main() -> int:
