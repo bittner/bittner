@@ -8,12 +8,11 @@ jobs:
     steps:
     - name: Sync repository from GitHub
       env:
-        CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
+        CI_JOB_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
         SOURCE: github.com/bittner/bittner.git
         TARGET: codeberg.org/bittner/bittner.git
-        USER: bittner
       run: |
         git clone https://${SOURCE} clone
         cd clone
-        git remote add codeberg https://${USER}:${CODEBERG_TOKEN}@${TARGET}
+        git remote add codeberg https://token:${CI_JOB_TOKEN}@${TARGET}
         git push --force codeberg main
