@@ -19,13 +19,3 @@ Here are some of the more popular projects that I work on as a maintainer or co-
     <img alt="Star History Chart" src="./star-history/star-history.svg">
   </picture>
 </a>
-
-<details>
-<summary>✏️ Show hand-drawn (xkcd) version</summary>
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./star-history/star-history-xkcd-dark.svg">
-  <img alt="Star History Chart, xkcd style" src="./star-history/star-history-xkcd.svg">
-</picture>
-
-</details>

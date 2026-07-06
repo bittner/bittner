@@ -19,10 +19,10 @@ if ``REPO_LIST`` grows beyond its length.
 Usage:
     REPO_LIST="owner/repo,owner/repo,..." GITHUB_TOKEN=... uv run generate_chart.py
 
-Outputs four transparent SVGs next to this script: a clean and a hand-drawn
-(xkcd) chart, each in a light and a dark variant, so the README can serve the
-right one per theme via ``<picture>``. The xkcd variant renders authentically
-because the ``xkcd Script`` font is vendored under ``fonts/``.
+Outputs two transparent hand-drawn (xkcd) SVGs next to this script, a light and
+a dark variant, so the README can serve the right one per theme via
+``<picture>``. The xkcd look renders authentically because the ``xkcd Script``
+font is vendored under ``fonts/``.
 """
 
 from __future__ import annotations
@@ -50,16 +50,16 @@ MAX_REQUEST_PAGES = 20
 PER_PAGE = 100
 MAX_PAGES = 400
 PALETTE = [
-    "#e6194b",
-    "#3cb44b",
-    "#4363d8",
-    "#f58231",
-    "#911eb4",
-    "#42d4f4",
-    "#f032e6",
-    "#bfef45",
-    "#fabed4",
-    "#469990",
+    "#5a8f3c",
+    "#c06a2e",
+    "#4a7ba6",
+    "#c2a13a",
+    "#9c6b52",
+    "#6fa77f",
+    "#a06a91",
+    "#c39a5e",
+    "#7a8b3f",
+    "#6f97b3",
 ]
 
 
@@ -230,21 +230,13 @@ def render(
     series: list[tuple[str, list[tuple[datetime, int]]]],
     out: Path,
     *,
-    xkcd: bool,
     dark: bool,
 ) -> None:
-    """Render one chart variant.
-
-    ``xkcd`` selects matplotlib's hand-drawn sketch style over a clean line
-    chart; ``dark`` inks the chart for dark backgrounds instead of light.
-    """
+    """Render the hand-drawn (xkcd) chart, inked for a dark or light theme."""
     fg = "#c9d1d9" if dark else "#24292f"
     grid = "#30363d" if dark else "#d0d7de"
     legend_bg = "#0d1117" if dark else "#ffffff"
-    if xkcd:
-        with plt.xkcd():
-            _draw(series, out, fg=fg, grid=grid, legend_bg=legend_bg)
-    else:
+    with plt.xkcd():
         _draw(series, out, fg=fg, grid=grid, legend_bg=legend_bg)
 
 
@@ -283,10 +275,8 @@ def main() -> int:
         return 1
 
     here = Path(__file__).resolve().parent
-    render(series, here / "star-history.svg", xkcd=False, dark=False)
-    render(series, here / "star-history-dark.svg", xkcd=False, dark=True)
-    render(series, here / "star-history-xkcd.svg", xkcd=True, dark=False)
-    render(series, here / "star-history-xkcd-dark.svg", xkcd=True, dark=True)
+    render(series, here / "star-history.svg", dark=False)
+    render(series, here / "star-history-dark.svg", dark=True)
     print(f"wrote charts for {len(series)} repos ({failures} failed)")
     return 1 if failures else 0
 
