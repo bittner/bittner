@@ -4,16 +4,18 @@ on:
   workflow_dispatch:
 jobs:
   mirror:
-    runs-on: docker
-    container: node:20-bookworm
+    runs-on: codeberg-small
     steps:
-    - run: |
-        apt-get update && apt-get install -y --no-install-recommends git-lfs
-        git clone --mirror https://github.com/bittner/bittner.git repo
-        cd repo
-        git remote add codeberg https://bittner:${CODEBERG_TOKEN}@codeberg.org/bittner/bittner.git
-        git lfs fetch --all origin
-        git lfs push --all codeberg
-        git push --force --prune codeberg 'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'
+    - name: Sync repository from GitHub
       env:
         CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
+        SOURCE: github.com/bittner/bittner.git
+        TARGET: codeberg.org/bittner/bittner.git
+      run: |
+        git clone --mirror https://${SOURCE} clone
+        cd clone
+        git remote rename origin github
+        git remote add codeberg https://bittner:${CODEBERG_TOKEN}@${TARGET}
+        git lfs fetch github --all
+        git lfs push codeberg --all
+        git push codeberg --force --prune 'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'
