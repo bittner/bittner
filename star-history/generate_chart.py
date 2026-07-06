@@ -1,4 +1,4 @@
-"""Generate a Star History chart for a set of GitHub repositories.
+"""Generate a Star History chart in XKCD style for a set of GitHub repositories.
 
 Unlike the public ``api.star-history.com`` image endpoint, this script talks to
 the GitHub REST API directly with an authenticated token, so it is not subject
@@ -14,11 +14,6 @@ if ``REPO_LIST`` grows beyond its length.
 
 Usage:
     REPO_LIST="owner/repo,owner/repo,..." GITHUB_TOKEN=... uv run generate_chart.py
-
-Outputs two hand-drawn (xkcd) SVGs next to this script, a light and a dark
-variant on solid backgrounds, so the README can serve the right one per theme
-via ``<picture>`` while each stays readable on its own. The xkcd look renders
-authentically because the ``xkcd Script`` font is vendored under ``fonts/``.
 """
 
 from __future__ import annotations
