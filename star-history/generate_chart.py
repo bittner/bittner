@@ -70,10 +70,8 @@ PALETTE = [
 Series = list[tuple[str, list[tuple[datetime, int]], "np.ndarray | None"]]
 
 CHART_WIDTH_PX = 1280
-THEMES = {
-    "light": {"bg": "#ffffff", "ink": "#24292f", "grid": "#d0d7de"},
-    "dark": {"bg": "#00000f", "ink": "#eeeeff", "grid": "#30363d"},
-}
+LIGHT = {"bg": "#ffffff", "ink": "#24292f", "grid": "#d0d7de"}
+DARK = {"bg": "#00000f", "ink": "#eeeeff", "grid": "#30363d"}
 
 
 def _request(url: str, token: str, star_json: bool = False) -> tuple[Any, dict]:
@@ -295,18 +293,39 @@ def _set_svg_width(path: Path, width: int) -> None:
     path.write_text(text)
 
 
-def render(series: Series, out: Path, *, dark: bool) -> None:
-    """Render the hand-drawn (xkcd) chart for the light or dark theme.
+def _adapt_svg(path: Path) -> None:
+    """Rewrite the chrome colours as CSS variables that flip with the theme.
 
-    xkcd mode outlines every path in white for its sketchy look; that outline
-    is recoloured to the background so it stays invisible on the dark theme.
+    A single SVG then adapts to the viewer's colour scheme through an internal
+    ``@media (prefers-color-scheme: dark)`` block, which works via a plain
+    ``<img>`` on both GitHub and GitLab (unlike a ``<picture>`` element, which
+    GitLab strips). Data-line and avatar colours are left untouched.
     """
-    theme = THEMES["dark" if dark else "light"]
+    text = path.read_text()
+    for name, light in LIGHT.items():
+        text = text.replace(light, f"var(--{name})")
+    variables = ";".join(f"--{n}:{c}" for n, c in LIGHT.items())
+    overrides = ";".join(f"--{n}:{c}" for n, c in DARK.items())
+    style = (
+        f"<style>:root{{{variables}}}"
+        f"@media(prefers-color-scheme:dark){{:root{{{overrides}}}}}</style>"
+    )
+    cut = text.index(">", text.index("<svg")) + 1
+    path.write_text(text[:cut] + style + text[cut:])
+
+
+def render(series: Series, out: Path) -> None:
+    """Render the hand-drawn (xkcd) chart as a single theme-adapting SVG.
+
+    xkcd mode outlines every path in white for its sketchy look; recolouring
+    that outline to ``--bg`` keeps it invisible on either theme.
+    """
     with plt.xkcd():
         plt.rcParams["path.effects"] = [
-            pe.withStroke(linewidth=4, foreground=theme["bg"])
+            pe.withStroke(linewidth=4, foreground=LIGHT["bg"])
         ]
-        _draw(series, out, **theme)
+        _draw(series, out, **LIGHT)
+    _adapt_svg(out)
 
 
 def main() -> int:
@@ -347,9 +366,8 @@ def main() -> int:
         return 1
 
     here = Path(__file__).resolve().parent
-    render(series, here / "star-history.svg", dark=False)
-    render(series, here / "star-history-dark.svg", dark=True)
-    print(f"wrote charts for {len(series)} repos ({failures} failed)")
+    render(series, here / "star-history.svg")
+    print(f"wrote chart for {len(series)} repos ({failures} failed)")
     return 1 if failures else 0
 
 
