@@ -22,8 +22,6 @@ jobs:
         ctsdownloads/easyspeak
     steps:
     - uses: actions/checkout@v6
-      with:
-        lfs: true
     - uses: astral-sh/setup-uv@v6
     - name: Generate Star History Chart
       env:
