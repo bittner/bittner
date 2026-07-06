@@ -207,7 +207,9 @@ def _draw(
 
     ax.set_yscale("log")
     ax.set_ylabel("GitHub Stars", color=fg)
-    ax.set_title("Star History", color=fg, fontsize=15, fontweight="bold", loc="left")
+    ax.set_title(
+        "Star History", color=fg, fontsize=17, fontweight="bold", loc="center", pad=14
+    )
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
     fig.autofmt_xdate()
     ax.grid(True, which="major", color=grid, linewidth=0.6, alpha=0.7)
