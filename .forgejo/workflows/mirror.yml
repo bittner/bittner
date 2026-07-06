@@ -1,0 +1,19 @@
+on:
+  schedule:
+  - cron: '0 2 * * *'
+  workflow_dispatch:
+jobs:
+  mirror:
+    runs-on: docker
+    container: node:20-bookworm
+    steps:
+    - run: |
+        apt-get update && apt-get install -y --no-install-recommends git-lfs
+        git clone --mirror https://github.com/bittner/bittner.git repo
+        cd repo
+        git remote add codeberg https://bittner:${CODEBERG_TOKEN}@codeberg.org/bittner/bittner.git
+        git lfs fetch --all origin
+        git lfs push --all codeberg
+        git push --force --prune codeberg 'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'
+      env:
+        CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
