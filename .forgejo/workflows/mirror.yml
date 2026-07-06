@@ -13,8 +13,7 @@ jobs:
         TARGET: codeberg.org/bittner/bittner.git
         USER: bittner
       run: |
-        git clone --mirror https://${SOURCE} clone
+        git clone https://${SOURCE} clone
         cd clone
-        git remote rename origin github
         git remote add codeberg https://${USER}:${CODEBERG_TOKEN}@${TARGET}
-        git push codeberg --force --prune 'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'
+        git push --force codeberg main

@@ -8,9 +8,8 @@ mirror:
     SOURCE: github.com/bittner/bittner.git
     TARGET: gitlab.com/bittner/bittner.git
   before_script:
-  - git clone --mirror https://${SOURCE} clone
+  - git clone https://${SOURCE} clone
   - cd clone
-  - git remote rename origin github
   - git remote add gitlab https://gitlab-ci-token:${CI_JOB_TOKEN}@${TARGET}
   script:
-  - git push gitlab --force --prune 'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'
+  - git push --force gitlab main
