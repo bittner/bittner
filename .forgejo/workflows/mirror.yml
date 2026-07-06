@@ -11,11 +11,13 @@ jobs:
         CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
         SOURCE: github.com/bittner/bittner.git
         TARGET: codeberg.org/bittner/bittner.git
+        USER: bittner
       run: |
         git clone --mirror https://${SOURCE} clone
         cd clone
         git remote rename origin github
-        git remote add codeberg https://bittner:${CODEBERG_TOKEN}@${TARGET}
+        git remote add codeberg https://${USER}:${CODEBERG_TOKEN}@${TARGET}
+        git config lfs.locksverify false
         git lfs fetch github --all
         git lfs push codeberg --all
         git push codeberg --force --prune 'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'
