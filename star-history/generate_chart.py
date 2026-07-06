@@ -70,7 +70,7 @@ Series = list[tuple[str, list[tuple[datetime, int]], "np.ndarray | None"]]
 
 PLOT_BG = "#ffffff"
 GRID = "#d0d7de"
-AXIS_INK = "#808080"
+AXIS_INK = "#24292f"
 LEGEND_INK = "#24292f"
 
 
@@ -251,15 +251,9 @@ def _legend(ax, series: Series) -> None:
 
 
 def _draw(series: Series, out: Path) -> None:
-    """Draw and save the chart with a white plot area and transparent margins.
-
-    Only the plot box interior is white; the surrounding figure is transparent
-    so the title, axis labels and ticks blend into the page. Those margin texts
-    use a mid-grey (``AXIS_INK``) that stays readable on light and dark themes,
-    while the legend inside the white box keeps a dark ink.
-    """
+    """Draw and save the chart with dark ink on a solid white background."""
     fig, ax = plt.subplots(figsize=(8, 5.5))
-    fig.patch.set_alpha(0.0)
+    fig.patch.set_facecolor(PLOT_BG)
     ax.set_facecolor(PLOT_BG)
 
     for (_repo, records, _avatar), colour in zip(series, PALETTE, strict=False):
@@ -287,7 +281,7 @@ def _draw(series: Series, out: Path) -> None:
     _legend(ax, series)
 
     fig.tight_layout()
-    fig.savefig(out, format="svg", facecolor="none", bbox_inches="tight")
+    fig.savefig(out, format="svg", facecolor=PLOT_BG, bbox_inches="tight")
     plt.close(fig)
 
 
