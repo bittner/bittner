@@ -12,6 +12,7 @@ mirror:
   - cd clone
   - git remote rename origin github
   - git remote add gitlab https://oauth2:${GITLAB_TOKEN}@${TARGET}
+  - git config lfs.locksverify false
   script:
   - git lfs fetch github --all
   - git lfs push gitlab --all
