@@ -17,7 +17,4 @@ jobs:
         cd clone
         git remote rename origin github
         git remote add codeberg https://${USER}:${CODEBERG_TOKEN}@${TARGET}
-        git config lfs.locksverify false
-        git lfs fetch github --all
-        git lfs push codeberg --all
         git push codeberg --force --prune 'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'

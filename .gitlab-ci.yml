@@ -12,8 +12,5 @@ mirror:
   - cd clone
   - git remote rename origin github
   - git remote add gitlab https://gitlab-ci-token:${CI_JOB_TOKEN}@${TARGET}
-  - git config lfs.locksverify false
   script:
-  - git lfs fetch github --all
-  - git lfs push gitlab --all
   - git push gitlab --force --prune 'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'
