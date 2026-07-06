@@ -13,9 +13,15 @@ repos:
         language: system
         types_or: [python, pyi]
         require_serial: true
+      - id: mypy
+        name: mypy
+        entry: uvx mypy
+        language: system
+        types_or: [python, pyi]
+        require_serial: true
       - id: pytest-doctests
         name: pytest (doctests)
-        entry: uvx --with matplotlib pytest --doctest-modules star-history/generate_chart.py
+        entry: uvx --with matplotlib pytest --doctest-modules
         language: system
         pass_filenames: false
         always_run: true

@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.11"
+# requires-python = ">=3.14"
 # dependencies = ["matplotlib"]
 # ///
 """Generate a Star History chart for a set of GitHub repositories.
@@ -27,6 +27,7 @@ font is vendored under ``fonts/``.
 
 from __future__ import annotations
 
+import io
 import json
 import os
 import sys
@@ -34,13 +35,26 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.dates as mdates  # noqa: E402
 import matplotlib.font_manager as fm  # noqa: E402
+import matplotlib.patheffects as pe  # noqa: E402
 import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+from matplotlib.offsetbox import (  # noqa: E402
+    AnnotationBbox,
+    DrawingArea,
+    HPacker,
+    OffsetImage,
+    TextArea,
+    VPacker,
+)
+from matplotlib.patches import Rectangle  # noqa: E402
+from PIL import Image  # noqa: E402
 
 _FONT = Path(__file__).resolve().parent / "fonts" / "xkcd-script.ttf"
 if _FONT.exists():
@@ -50,20 +64,21 @@ MAX_REQUEST_PAGES = 20
 PER_PAGE = 100
 MAX_PAGES = 400
 PALETTE = [
-    "#5a8f3c",
-    "#c06a2e",
-    "#4a7ba6",
-    "#c2a13a",
-    "#9c6b52",
-    "#6fa77f",
-    "#a06a91",
-    "#c39a5e",
-    "#7a8b3f",
-    "#6f97b3",
+    "#4e79a7",
+    "#f28e2b",
+    "#59a14f",
+    "#e15759",
+    "#b07aa1",
+    "#76b7b2",
+    "#edc948",
+    "#ff9da7",
+    "#9c755f",
+    "#bab0ac",
 ]
+Series = list[tuple[str, list[tuple[datetime, int]], "np.ndarray | None"]]
 
 
-def _request(url: str, token: str, star_json: bool = False) -> tuple[list | dict, dict]:
+def _request(url: str, token: str, star_json: bool = False) -> tuple[Any, dict]:
     headers = {
         "Accept": "application/vnd.github.star+json"
         if star_json
@@ -183,14 +198,60 @@ def star_records(repo: str, token: str) -> list[tuple[datetime, int]]:
     return records
 
 
-def _draw(
-    series: list[tuple[str, list[tuple[datetime, int]]]],
-    out: Path,
-    *,
-    fg: str,
-    grid: str,
-    legend_bg: str,
-) -> None:
+def owner_avatar(repo: str, token: str) -> np.ndarray | None:
+    """Return the repo owner's avatar as an RGBA array, or None if unavailable."""
+    info, _ = _request(f"https://api.github.com/repos/{repo}", token)
+    url = info.get("owner", {}).get("avatar_url")
+    if not url:
+        return None
+    sized = url + ("&" if "?" in url else "?") + "s=48"
+    req = urllib.request.Request(
+        sized, headers={"User-Agent": "star-history-generator"}
+    )
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        data = resp.read()
+    return np.asarray(Image.open(io.BytesIO(data)).convert("RGBA"))
+
+
+def _legend_row(repo: str, avatar, colour: str, fg: str) -> HPacker:
+    """Build one legend row (colour swatch, avatar, name) linking to the repo."""
+    url = f"https://github.com/{repo}"
+    swatch = DrawingArea(10, 10, 0, 0)
+    square = Rectangle((0, 0), 9, 9, color=colour)
+    square.set_url(url)
+    swatch.add_artist(square)
+    children = [swatch]
+    if avatar is not None:
+        icon = OffsetImage(avatar, zoom=0.28)
+        icon.get_children()[0].set_url(url)
+        children.append(icon)
+    name = TextArea(repo, textprops={"color": fg, "fontsize": 8})
+    name.get_children()[0].set_url(url)
+    children.append(name)
+    return HPacker(children=children, align="center", pad=0, sep=4)
+
+
+def _legend(ax, series: Series, *, fg: str, grid: str, legend_bg: str) -> None:
+    """Anchor a star-history-style legend with an avatar icon per repository."""
+    rows = [
+        _legend_row(repo, avatar, colour, fg)
+        for (repo, records, avatar), colour in zip(series, PALETTE, strict=False)
+        if records
+    ]
+    box = VPacker(children=rows, align="left", pad=0, sep=3)
+    anchored = AnnotationBbox(
+        box,
+        (0.0, 1.0),
+        xycoords="axes fraction",
+        box_alignment=(0, 1),
+        frameon=True,
+        pad=0.4,
+        bboxprops={"edgecolor": grid, "facecolor": legend_bg},
+    )
+    ax.add_artist(anchored)
+
+
+def _draw(series: Series, out: Path, *, fg: str, grid: str, legend_bg: str) -> None:
     """Draw and save one transparent chart inked in ``fg``.
 
     The background is transparent so the README's ``<picture>`` element can
@@ -198,18 +259,17 @@ def _draw(
     """
     fig, ax = plt.subplots(figsize=(8, 5.5))
 
-    for (repo, records), colour in zip(series, PALETTE):
+    for (_repo, records, _avatar), colour in zip(series, PALETTE, strict=False):
         if not records:
             continue
         xs = [ts for ts, _ in records]
         ys = [max(count, 1) for _, count in records]
-        ax.plot(xs, ys, label=repo, color=colour, linewidth=2.4, solid_capstyle="round")
+        ax.plot(xs, ys, color=colour, linewidth=2.4, solid_capstyle="round")
 
     ax.set_yscale("log")
     ax.set_ylabel("GitHub Stars", color=fg)
-    ax.set_title(
-        "Star History", color=fg, fontsize=17, fontweight="bold", loc="center", pad=14
-    )
+    title = ax.set_title("Star History", color=fg, fontsize=18, loc="center", pad=14)
+    title.set_path_effects([pe.withStroke(linewidth=2.8, foreground=fg)])
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
     fig.autofmt_xdate()
     ax.grid(True, which="major", color=grid, linewidth=0.6, alpha=0.7)
@@ -217,23 +277,14 @@ def _draw(
     for spine in ax.spines.values():
         spine.set_color(fg)
 
-    legend = ax.legend(loc="upper left", fontsize=8, frameon=True)
-    legend.get_frame().set_facecolor(legend_bg)
-    legend.get_frame().set_edgecolor(grid)
-    for text in legend.get_texts():
-        text.set_color(fg)
+    _legend(ax, series, fg=fg, grid=grid, legend_bg=legend_bg)
 
     fig.tight_layout()
     fig.savefig(out, format="svg", transparent=True, bbox_inches="tight")
     plt.close(fig)
 
 
-def render(
-    series: list[tuple[str, list[tuple[datetime, int]]]],
-    out: Path,
-    *,
-    dark: bool,
-) -> None:
+def render(series: Series, out: Path, *, dark: bool) -> None:
     """Render the hand-drawn (xkcd) chart, inked for a dark or light theme."""
     fg = "#c9d1d9" if dark else "#24292f"
     grid = "#30363d" if dark else "#d0d7de"
@@ -254,15 +305,18 @@ def main() -> int:
             file=sys.stderr,
         )
 
-    series: list[tuple[str, list[tuple[datetime, int]]]] = []
+    series: Series = []
     failures = 0
     for repo in repos:
         try:
             records = star_records(repo, token)
-            series.append((repo, records))
-            print(
-                f"ok: {repo} ({records[-1][1] if records else 0} stars, {len(records)} points)"
-            )
+            try:
+                avatar = owner_avatar(repo, token)
+            except (urllib.error.HTTPError, urllib.error.URLError, OSError):
+                avatar = None
+            series.append((repo, records, avatar))
+            stars = records[-1][1] if records else 0
+            print(f"ok: {repo} ({stars} stars, {len(records)} points)")
         except (
             urllib.error.HTTPError,
             urllib.error.URLError,

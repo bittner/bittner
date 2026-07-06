@@ -1,0 +1,11 @@
+[tool.ruff.lint]
+select = ["E", "F", "B", "UP", "C4", "SIM", "I"]
+
+[tool.mypy]
+python_version = "3.14"
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["matplotlib.*", "numpy", "numpy.*", "PIL.*"]
+ignore_missing_imports = true
