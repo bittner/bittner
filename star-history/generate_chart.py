@@ -269,7 +269,7 @@ def _draw(series: Series, out: Path, *, fg: str, grid: str, legend_bg: str) -> N
     ax.set_yscale("log")
     ax.set_ylabel("GitHub Stars", color=fg)
     title = ax.set_title("Star History", color=fg, fontsize=18, loc="center", pad=14)
-    title.set_path_effects([pe.withStroke(linewidth=2.8, foreground=fg)])
+    title.set_path_effects([pe.withStroke(linewidth=1.4, foreground=fg)])
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
     fig.autofmt_xdate()
     ax.grid(True, which="major", color=grid, linewidth=0.6, alpha=0.7)
