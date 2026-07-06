@@ -21,6 +21,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.request
@@ -72,6 +73,7 @@ PLOT_BG = "#ffffff"
 GRID = "#d0d7de"
 AXIS_INK = "#24292f"
 LEGEND_INK = "#24292f"
+CHART_WIDTH_PX = 1280
 
 
 def _request(url: str, token: str, star_json: bool = False) -> tuple[Any, dict]:
@@ -283,6 +285,19 @@ def _draw(series: Series, out: Path) -> None:
     fig.tight_layout()
     fig.savefig(out, format="svg", facecolor=PLOT_BG, bbox_inches="tight")
     plt.close(fig)
+    _set_svg_width(out, CHART_WIDTH_PX)
+
+
+def _set_svg_width(path: Path, width: int) -> None:
+    """Rescale the saved SVG to a fixed pixel width, preserving its aspect."""
+    text = path.read_text()
+    box = re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', text)
+    if box is None:
+        return
+    height = round(width * float(box.group(2)) / float(box.group(1)))
+    text = re.sub(r'width="[\d.]+pt"', f'width="{width}"', text, count=1)
+    text = re.sub(r'height="[\d.]+pt"', f'height="{height}"', text, count=1)
+    path.write_text(text)
 
 
 def render(series: Series, out: Path) -> None:
