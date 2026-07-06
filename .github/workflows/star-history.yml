@@ -14,7 +14,7 @@ jobs:
     env:
       BASE_URL: https://api.star-history.com/svg
       BASE_OPTIONS: type=date&logscale&legend=top-left
-      REPO_LIST: bittner/pyclean,painless-software/python-cli-test-helpers,painless-software/django-probes,behave/behave-django,jazzband/django-analytical,behave/behave
+      REPO_LIST: bittner/pyclean,painless-software/python-cli-test-helpers,painless-software/django-probes,behave/behave-django,jazzband/django-analytical,behave/behave,ctsdownloads/easyspeak
     steps:
     - uses: actions/checkout@v6
     - name: Fetch Star History Chart
