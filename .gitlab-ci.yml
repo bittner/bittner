@@ -5,10 +5,13 @@ mirror:
   - if: $CI_PIPELINE_SOURCE == "web"
   variables:
     GIT_STRATEGY: none
-  script:
-  - git clone --mirror https://github.com/bittner/bittner.git repo
-  - cd repo
-  - git remote add gitlab https://oauth2:${GITLAB_TOKEN}@gitlab.com/bittner/bittner.git
+    SOURCE: github.com/bittner/bittner.git
+    TARGET: gitlab.com/bittner/bittner.git
+  before_script:
+  - git clone --mirror https://${SOURCE} clone
+  - cd clone
+  - git remote add gitlab https://oauth2:${GITLAB_TOKEN}@${TARGET}
   - git lfs fetch --all origin
-  - git lfs push --all gitlab
-  - git push --force --prune gitlab 'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'
+  script:
+  - git lfs push gitlab --all
+  - git push gitlab --force --prune 'refs/heads/*:refs/heads/*' 'refs/tags/*:refs/tags/*'
