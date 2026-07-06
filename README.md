@@ -7,7 +7,10 @@ Some substantial parts of the work I do is [on GitLab](https://gitlab.com/painle
 
 ## Contribution Activity 👨‍💻
 
-![](./profile-3d-contrib/profile-green-animate.svg)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./profile-3d-contrib/profile-night-green-animate.svg">
+  <img alt="3D contribution chart" src="./profile-3d-contrib/profile-green-animate.svg">
+</picture>
 
 ## Popular Projects 🛒
 
