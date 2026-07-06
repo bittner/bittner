@@ -1,5 +1,11 @@
-[tool.ruff.lint]
-select = ["E", "F", "B", "UP", "C4", "SIM", "I"]
+[project]
+name = "star-history-chart"
+version = "0"
+requires-python = ">=3.14"
+dependencies = ["matplotlib"]
+
+[dependency-groups]
+dev = ["pytest"]
 
 [tool.mypy]
 python_version = "3.14"
@@ -9,3 +15,13 @@ warn_unused_ignores = true
 [[tool.mypy.overrides]]
 module = ["matplotlib.*", "numpy", "numpy.*", "PIL.*"]
 ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules"
+testpaths = ["star-history"]
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "UP", "C4", "SIM", "I"]
+
+[tool.uv]
+package = false

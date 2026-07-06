@@ -1,7 +1,3 @@
-# /// script
-# requires-python = ">=3.14"
-# dependencies = ["matplotlib"]
-# ///
 """Generate a Star History chart for a set of GitHub repositories.
 
 Unlike the public ``api.star-history.com`` image endpoint, this script talks to
@@ -33,7 +29,7 @@ import os
 import sys
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -135,7 +131,7 @@ def _parse_ts(value: str) -> datetime:
     >>> _parse_ts("2020-01-02T03:04:05Z")
     datetime.datetime(2020, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc)
     """
-    return datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    return datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
 
 
 def _stargazer_page(repo: str, token: str, page: int) -> list[dict]:
@@ -193,7 +189,7 @@ def star_records(repo: str, token: str) -> list[tuple[datetime, int]]:
     build = _exact_records if fetched_all else _sampled_records
     records = build(repo, token, pages)
 
-    records.append((datetime.now(timezone.utc), total))
+    records.append((datetime.now(UTC), total))
     records.sort(key=lambda r: r[0])
     return records
 
@@ -320,7 +316,7 @@ def main() -> int:
             records = star_records(repo, token)
             try:
                 avatar = owner_avatar(repo, token)
-            except (urllib.error.HTTPError, urllib.error.URLError, OSError):
+            except urllib.error.HTTPError, urllib.error.URLError, OSError:
                 avatar = None
             series.append((repo, records, avatar))
             stars = records[-1][1] if records else 0
