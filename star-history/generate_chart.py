@@ -68,6 +68,11 @@ PALETTE = [
 ]
 Series = list[tuple[str, list[tuple[datetime, int]], "np.ndarray | None"]]
 
+PLOT_BG = "#ffffff"
+GRID = "#d0d7de"
+AXIS_INK = "#808080"
+LEGEND_INK = "#24292f"
+
 
 def _request(url: str, token: str, star_json: bool = False) -> tuple[Any, dict]:
     headers = {
@@ -204,7 +209,7 @@ def owner_avatar(repo: str, token: str) -> np.ndarray | None:
     return np.asarray(Image.open(io.BytesIO(data)).convert("RGBA"))
 
 
-def _legend_row(repo: str, avatar, colour: str, fg: str) -> HPacker:
+def _legend_row(repo: str, avatar, colour: str) -> HPacker:
     """Build one legend row (colour swatch, avatar, name) linking to the repo."""
     url = f"https://github.com/{repo}"
     swatch = DrawingArea(10, 10, 0, 0)
@@ -216,16 +221,19 @@ def _legend_row(repo: str, avatar, colour: str, fg: str) -> HPacker:
         icon = OffsetImage(avatar, zoom=0.28)
         icon.get_children()[0].set_url(url)
         children.append(icon)
-    name = TextArea(repo, textprops={"color": fg, "fontsize": 8})
+    name = TextArea(repo, textprops={"color": LEGEND_INK, "fontsize": 8})
     name.get_children()[0].set_url(url)
     children.append(name)
     return HPacker(children=children, align="center", pad=0, sep=4)
 
 
-def _legend(ax, series: Series, *, fg: str, grid: str, legend_bg: str) -> None:
-    """Anchor a star-history-style legend with an avatar icon per repository."""
+def _legend(ax, series: Series) -> None:
+    """Anchor a star-history-style legend with an avatar icon per repository.
+
+    The legend sits inside the white plot area, so its text stays dark.
+    """
     rows = [
-        _legend_row(repo, avatar, colour, fg)
+        _legend_row(repo, avatar, colour)
         for (repo, records, avatar), colour in zip(series, PALETTE, strict=False)
         if records
     ]
@@ -237,23 +245,22 @@ def _legend(ax, series: Series, *, fg: str, grid: str, legend_bg: str) -> None:
         box_alignment=(0, 1),
         frameon=True,
         pad=0.4,
-        bboxprops={"edgecolor": grid, "facecolor": legend_bg},
+        bboxprops={"edgecolor": GRID, "facecolor": PLOT_BG},
     )
     ax.add_artist(anchored)
 
 
-def _draw(
-    series: Series, out: Path, *, bg: str, fg: str, grid: str, legend_bg: str
-) -> None:
-    """Draw and save one chart on a solid ``bg`` background inked in ``fg``.
+def _draw(series: Series, out: Path) -> None:
+    """Draw and save the chart with a white plot area and transparent margins.
 
-    A solid background keeps each variant readable on its own, so the light or
-    dark SVG stays legible even when a viewer ignores the README's ``<picture>``
-    theme hint and shows the other one.
+    Only the plot box interior is white; the surrounding figure is transparent
+    so the title, axis labels and ticks blend into the page. Those margin texts
+    use a mid-grey (``AXIS_INK``) that stays readable on light and dark themes,
+    while the legend inside the white box keeps a dark ink.
     """
     fig, ax = plt.subplots(figsize=(8, 5.5))
-    fig.patch.set_facecolor(bg)
-    ax.set_facecolor(bg)
+    fig.patch.set_alpha(0.0)
+    ax.set_facecolor(PLOT_BG)
 
     for (_repo, records, _avatar), colour in zip(series, PALETTE, strict=False):
         if not records:
@@ -263,33 +270,31 @@ def _draw(
         ax.plot(xs, ys, color=colour, linewidth=2.4, solid_capstyle="round")
 
     ax.set_yscale("log")
-    ax.set_xlabel("Date", color=fg)
-    ax.set_ylabel("GitHub Stars", color=fg)
-    title = ax.set_title("Star History", color=fg, fontsize=18, loc="center", pad=14)
-    title.set_path_effects([pe.withStroke(linewidth=1.0, foreground=fg)])
+    ax.set_xlabel("Date", color=AXIS_INK)
+    ax.set_ylabel("GitHub Stars", color=AXIS_INK)
+    title = ax.set_title(
+        "Star History", color=AXIS_INK, fontsize=18, loc="center", pad=14
+    )
+    title.set_path_effects([pe.withStroke(linewidth=1.0, foreground=AXIS_INK)])
     ax.xaxis.set_major_locator(mdates.YearLocator(2))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
     fig.autofmt_xdate()
-    ax.grid(True, which="major", color=grid, linewidth=0.6, alpha=0.7)
-    ax.tick_params(colors=fg)
+    ax.grid(True, which="major", color=GRID, linewidth=0.6, alpha=0.7)
+    ax.tick_params(colors=AXIS_INK)
     for spine in ax.spines.values():
-        spine.set_color(fg)
+        spine.set_color(AXIS_INK)
 
-    _legend(ax, series, fg=fg, grid=grid, legend_bg=legend_bg)
+    _legend(ax, series)
 
     fig.tight_layout()
-    fig.savefig(out, format="svg", facecolor=bg, bbox_inches="tight")
+    fig.savefig(out, format="svg", facecolor="none", bbox_inches="tight")
     plt.close(fig)
 
 
-def render(series: Series, out: Path, *, dark: bool) -> None:
-    """Render the hand-drawn (xkcd) chart, inked for a dark or light theme."""
-    bg = "#0d1117" if dark else "#ffffff"
-    fg = "#c9d1d9" if dark else "#24292f"
-    grid = "#30363d" if dark else "#d0d7de"
-    legend_bg = "#161b22" if dark else "#ffffff"
+def render(series: Series, out: Path) -> None:
+    """Render the hand-drawn (xkcd) chart."""
     with plt.xkcd():
-        _draw(series, out, bg=bg, fg=fg, grid=grid, legend_bg=legend_bg)
+        _draw(series, out)
 
 
 def main() -> int:
@@ -330,9 +335,8 @@ def main() -> int:
         return 1
 
     here = Path(__file__).resolve().parent
-    render(series, here / "star-history.svg", dark=False)
-    render(series, here / "star-history-dark.svg", dark=True)
-    print(f"wrote charts for {len(series)} repos ({failures} failed)")
+    render(series, here / "star-history.svg")
+    print(f"wrote chart for {len(series)} repos ({failures} failed)")
     return 1 if failures else 0
 
 
