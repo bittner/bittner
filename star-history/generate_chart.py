@@ -59,8 +59,19 @@ def _request(url: str, token: str, star_json: bool = False) -> tuple[list | dict
     if token:
         headers["Authorization"] = f"Bearer {token}"
     req = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        return json.load(resp), dict(resp.headers)
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return json.load(resp), dict(resp.headers)
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", "replace")[:300]
+        remaining = exc.headers.get("x-ratelimit-remaining", "?")
+        raise urllib.error.HTTPError(
+            exc.url,
+            exc.code,
+            f"{exc.reason} (ratelimit-remaining={remaining}): {body}",
+            exc.headers,
+            None,
+        ) from None
 
 
 def _sample_pages(page_count: int) -> tuple[list[int], bool]:
