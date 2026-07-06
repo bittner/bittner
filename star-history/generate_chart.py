@@ -263,7 +263,7 @@ def _draw(series: Series, out: Path, *, bg: str, ink: str, grid: str) -> None:
     ax.set_yscale("log")
     ax.set_xlabel("Date", color=ink, fontsize=10)
     ax.set_ylabel("GitHub Stars", color=ink, fontsize=10)
-    title = ax.set_title("Star History", color=ink, fontsize=18, loc="center", pad=14)
+    title = ax.set_title("Star History", color=ink, fontsize=15, loc="center", pad=14)
     title.set_path_effects([pe.withStroke(linewidth=1.0, foreground=ink)])
     ax.xaxis.set_major_locator(mdates.YearLocator(2))
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
