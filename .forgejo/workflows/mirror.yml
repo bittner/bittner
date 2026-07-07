@@ -10,7 +10,7 @@ jobs:
       env:
         FORGE_TOKEN: ${{ forge.token }}
         SOURCE: github.com/bittner/bittner.git
-        TARGET: codeberg.org/bittner/bittner.git
+        TARGET: codeberg.org/bittner/.profile.git
       run: |
         git clone https://${SOURCE} clone
         cd clone
