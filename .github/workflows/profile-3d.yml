@@ -13,12 +13,38 @@ jobs:
     runs-on: ubuntu-latest
     name: generate-github-profile-3d-contrib
     steps:
-    - uses: actions/checkout@v6
-    - uses: yoshi389111/github-profile-3d-contrib@latest
+    - uses: actions/checkout@v7
+    - uses: bittner/github-profile-3d-contrib@main
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         USERNAME: ${{ github.repository_owner }}
-        SETTING_JSON: .github/profile-3d-settings.json
+        THEMES: green-animate
+        EXTERNAL_SOURCES: >-
+          [
+            {
+              "name": "GitLab",
+              "type": "gitlab",
+              "url": "https://gitlab.com",
+              "user": "bittner",
+              "color": "#fc6d26"
+            },
+            {
+              "name": "gitlab.gnome.org",
+              "type": "gitlab",
+              "url": "https://gitlab.gnome.org",
+              "user": "bittner",
+              "color": "#813d9c",
+              "darkColor": "#a86dc9"
+            },
+            {
+              "name": "Codeberg",
+              "type": "forgejo",
+              "url": "https://codeberg.org",
+              "user": "bittner",
+              "color": "#2185d0",
+              "darkColor": "#3b9ae1"
+            }
+          ]
     - name: Commit & Push
       run: |
         git config user.name github-actions
