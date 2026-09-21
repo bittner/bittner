@@ -10,7 +10,9 @@ To keep the request count tiny and constant regardless of a repo's star count,
 at most ``MAX_REQUEST_PAGES`` stargazer pages are sampled per repo (the same
 approach star-history uses); GitHub itself only exposes up to ``MAX_PAGES``.
 ``PALETTE`` is a distinct, colour-blind-friendly set of line colours; extend it
-if ``REPO_LIST`` grows beyond its length.
+if ``REPO_LIST`` grows beyond its length. Repositories are plotted and listed
+in the legend ranked by their current star count, most popular first, so the
+order adapts by itself as popularity shifts.
 
 Usage:
     REPO_LIST="owner/repo,owner/repo,..." GITHUB_TOKEN=... uv run generate_chart.py
@@ -209,6 +211,29 @@ def owner_avatar(repo: str, token: str) -> np.ndarray | None:
     return np.asarray(Image.open(io.BytesIO(data)).convert("RGBA"))
 
 
+def _star_count(entry: tuple[str, list[tuple[datetime, int]], Any]) -> int:
+    """Return the latest star count of a series entry, or 0 without data."""
+    records = entry[1]
+    return records[-1][1] if records else 0
+
+
+def rank_by_stars(series: Series) -> Series:
+    """Order the series by current star count, most popular first.
+
+    Entries without data sort last; ties keep their original order.
+
+    >>> now = datetime(2024, 1, 1, tzinfo=UTC)
+    >>> series = [
+    ...     ("a/small", [(now, 5)], None),
+    ...     ("b/empty", [], None),
+    ...     ("c/big", [(now, 50)], None),
+    ... ]
+    >>> [repo for repo, _, _ in rank_by_stars(series)]
+    ['c/big', 'a/small', 'b/empty']
+    """
+    return sorted(series, key=_star_count, reverse=True)
+
+
 def _legend_row(repo: str, avatar, colour: str, ink: str) -> HPacker:
     """Build one legend row (colour swatch, avatar, name) linking to the repo."""
     url = f"https://github.com/{repo}"
@@ -366,7 +391,7 @@ def main() -> int:
         return 1
 
     here = Path(__file__).resolve().parent
-    render(series, here / "star-history.svg")
+    render(rank_by_stars(series), here / "star-history.svg")
     print(f"wrote chart for {len(series)} repos ({failures} failed)")
     return 1 if failures else 0
 
