@@ -13,4 +13,4 @@ Some substantial parts of the work I do is [on GitLab](https://gitlab.com/painle
 
 Here are some of the more popular projects that I work on as a maintainer or co-maintainer. 🚀  
 
-[![Star History Chart](./star-history/star-history.svg)](https://www.star-history.com/#bittner/pyclean&painless-software/python-cli-test-helpers&painless-software/django-probes&behave/behave-django&jazzband/django-analytical&behave/behave&ctsdownloads/easyspeak&type=date&logscale&legend=top-left)
+[![Star History Chart](./star-history/star-history.svg)](https://www.star-history.com/#behave/behave&jazzband/django-analytical&behave/behave-django&ctsdownloads/easyspeak&bittner/pyclean&painless-software/django-probes&painless-software/python-cli-test-helpers&type=date&logscale&legend=top-left)
